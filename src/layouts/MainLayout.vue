@@ -11,7 +11,6 @@
             :data="data"
             :columns="columns"
             row-key="id"
-            :pagination.sync="pagination"
             :loading="loading"
             :filter="filter"
             @request="onRequest"
@@ -21,7 +20,7 @@
               <div v-if="$q.screen.gt.xs" class="q-pa-md q-gutter-sm">
                 <q-btn color="dark" label="Create" @click="create = true"/>
                 <q-btn color="secondary" label="Edit" @click="edited = selected[0]; edit = true" :disabled="(selected.length == 0)"/>
-                <q-btn color="secondary" label="Delete" :disabled="(selected.length == 0)"/>
+                <q-btn color="secondary" label="Delete" @click="sendDelete(selected[0])" :disabled="(selected.length == 0)"/>
               </div>
               <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
                 <template v-slot:append>
@@ -31,9 +30,9 @@
             </template>
 
           </q-table>
-<!--          <div class="q-mt-md">-->
-<!--            Selected: {{ JSON.stringify(selected) }}-->
-<!--          </div>-->
+          <div class="q-mt-md">
+            Selected: {{ JSON.stringify(error) }}
+          </div>
         </div>
       </div>
 
@@ -242,7 +241,24 @@
 
           <q-card-actions align="right" class="text-primary">
             <q-btn flat label="Cancel" v-close-popup></q-btn>
-            <q-btn flat label="Create" v-close-popup></q-btn>
+            <q-btn flat label="Create" @click="sendCreate(created)" v-close-popup></q-btn>
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="alert">
+        <q-card>
+          <q-card-section>
+            <div class="text-h6">Alert</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            {{ error }}
+            <img :src="url" alt="">
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="OK" color="primary" v-close-popup></q-btn>
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -253,6 +269,7 @@
 
 <script>
 import axios from 'axios'
+import xml2js from 'xml2js'
 
 const api = axios.create({ baseURL: 'http://localhost:8080/soa1_1-1.0-SNAPSHOT/product' })
 
@@ -260,9 +277,13 @@ export default {
   name: 'MainLayout',
   axios,
   api,
+  xml2js,
   data () {
     return {
       edit: false,
+      alert: false,
+      error: '',
+      url: '',
       edited: { name: 'name', x: 237, y: 9.0, manufacturecost: 4, price: 129, unitofmeasure: 'KILOGRAMS', eyecolor: 'BROWN', location_name: 'asd', location_x: 1, location_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
       create: false,
       created: { name: 'name', x: 237, y: 9.0, manufacturecost: 4, price: 129, unitofmeasure: 'KILOGRAMS', eyecolor: 'BROWN', location_name: 'asd', location_x: 1, location_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
@@ -309,7 +330,7 @@ export default {
           manufacturecost: 4,
           price: 129,
           unitofmeasure: 'KILOGRAMS',
-          eyecolor: 'BROWN',
+          eyecolor: undefined,
           location_name: 'asd',
           location_x: 1,
           location_y: 2,
@@ -333,50 +354,107 @@ export default {
           location_y: 2,
           nationality: 'RUSSIA',
           owner_name: 'asd'
+        },
+        {
+          id: 2,
+          name: undefined,
+          x: undefined,
+          y: 9.0,
+          creationdate: '37',
+          manufacturecost: undefined,
+          price: 129,
+          unitofmeasure: 'KILOGRAMS',
+          eyecolor: undefined,
+          location_name: 'asd',
+          location_x: 1,
+          location_y: 2,
+          nationality: 'RUSSIA',
+          owner_name: 'asd'
         }
       ]
     }
   },
   mounted () {
     // get initial data from server (1st page)
-    this.onRequest({
-      pagination: this.pagination,
-      filter: undefined
-    })
+    this.initTable()
   },
   methods: {
+    initTable () {
+      this.onRequest({
+        pagination: this.pagination,
+        filter: ''
+      })
+    },
+
     onRequest (props) {
-      const { page, rowsPerPage, sortBy, descending } = props.pagination
+      // const { page, rowsPerPage, sortBy, descending } = props.pagination
       const filter = props.filter
 
       this.loading = true
-
-      // emulate server
-      setTimeout(() => {
-        // update rowsCount with appropriate value
-        this.pagination.rowsNumber = this.getRowsNumberCount(filter)
-
-        // get all rows if "All" (0) is selected
-        const fetchCount = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage
-
-        // calculate starting row of data
-        const startRow = (page - 1) * rowsPerPage
-
-        // fetch data from "server"
-        const returnedData = this.fetchFromServer(startRow, fetchCount, filter, sortBy, descending)
-
-        // clear out existing data and add new
-        this.data.splice(0, this.data.length, ...returnedData)
-
-        // don't forget to update local pagination object
-        this.pagination.page = page
-        this.pagination.rowsPerPage = rowsPerPage
-        this.pagination.sortBy = sortBy
-        this.pagination.descending = descending
-
-        // ...and turn of loading indicator
-        this.loading = false
-      }, 1500)
+      const self = this
+      // eslint-disable-next-line no-unused-vars
+      const newData = []
+      api.get('/?' + filter).catch((error) => {
+        self.customErr(error)
+        console.log(error.toJSON())
+      }).then((response) => {
+        const a = response.data
+        xml2js.parseString(a, function (err, result) {
+          console.log(err)
+          // console.log(result.root.element)
+          const wtf = result.root.element
+          for (var j in result.root.element) {
+            const i = wtf[j]
+            // console.log(i.id[0]._)
+            var newObj = {}
+            try {
+              newObj.id = i.id[0]._
+            } catch {}
+            try {
+              newObj.name = i.name[0]
+            } catch {}
+            try {
+              newObj.x = i.coordinate[0].x[0]._
+            } catch {}
+            try {
+              newObj.y = i.coordinate[0].y[0]._
+            } catch {}
+            try {
+              newObj.creationdate = i.creationdate[0]
+            } catch {}
+            try {
+              newObj.manufacturecost = i.manufacturecost[0]._
+            } catch {}
+            try {
+              newObj.price = i.price[0]._
+            } catch {}
+            try {
+              newObj.unitofmeasure = i.unitofmeasure[0]
+            } catch {}
+            try {
+              newObj.eyecolor = i.person[0].eyecolor[0]
+            } catch {}
+            try {
+              newObj.location_name = i.person[0].location_name[0]
+            } catch {}
+            try {
+              newObj.location_x = i.person[0].location_x[0]._
+            } catch {}
+            try {
+              newObj.location_y = i.person[0].location_y[0]._
+            } catch {}
+            try {
+              newObj.nationality = i.person[0].nationality[0]
+            } catch {}
+            try {
+              newObj.owner_name = i.person[0].owner_name[0]
+            } catch {}
+            newData.push(newObj)
+          }
+          self.data = JSON.parse(JSON.stringify(newData))
+          self.loading = false
+        })
+      })
     },
 
     // emulate ajax call
@@ -415,6 +493,41 @@ export default {
         }
       })
       return count
+    },
+
+    customErr (err) {
+      this.error = err.message
+    },
+
+    customAlert (err) {
+      this.error = err.message
+      this.url = 'https://http.cat/' + err.message.slice(-3) + '.jpg'
+      this.alert = true
+    },
+
+    sendDelete (todel) {
+      const id = todel.id
+      const self = this
+      api.delete('/' + id).catch((error) => {
+        self.customAlert(error)
+        console.log(error.toJSON())
+      }).then(function (response) {
+        self.initTable()
+      })
+    },
+
+    sendCreate (created) {
+      let createStr = '/?'
+      for (var prop in created) {
+        createStr += prop + '=' + created[prop] + '&'
+      }
+      const self = this
+      api.put(createStr).catch((error) => {
+        self.customAlert(error)
+        console.log(error.toJSON())
+      }).then(function (response) {
+        self.initTable()
+      })
     }
   }
 }
