@@ -1,72 +1,303 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <h1> Hello </h1>
-    <div id="q-app">
-      <div class="q-pa-md">
-        <q-table
-          title="Treats"
-          selection="single"
-          :selected.sync="selected"
-          :data="data"
-          :columns="columns"
-          row-key="id"
-          :pagination.sync="pagination"
-          :loading="loading"
-          :filter="filter"
-          @request="onRequest"
-          binary-state-sort
-        >
-          <template v-slot:top-right>
-            <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-              <template v-slot:append>
-                <q-icon name="search"></q-icon>
-              </template>
-            </q-input>
-          </template>
+    <q-page-container>
+      <div id="q-app">
+        <div class="q-pa-md">
+          <q-table
+            title="Treats"
+            selection="single"
+            :selected.sync="selected"
+            :data="data"
+            :columns="columns"
+            row-key="id"
+            :pagination.sync="pagination"
+            :loading="loading"
+            :filter="filter"
+            @request="onRequest"
+            binary-state-sort
+          >
+            <template v-slot:top-right>
+              <div v-if="$q.screen.gt.xs" class="q-pa-md q-gutter-sm">
+                <q-btn color="dark" label="Create" @click="create = true"/>
+                <q-btn color="secondary" label="Edit" @click="edited = selected[0]; edit = true" :disabled="(selected.length == 0)"/>
+                <q-btn color="secondary" label="Delete" :disabled="(selected.length == 0)"/>
+              </div>
+              <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
+                <template v-slot:append>
+                  <q-icon name="search"></q-icon>
+                </template>
+              </q-input>
+            </template>
 
-        </q-table>
+          </q-table>
+<!--          <div class="q-mt-md">-->
+<!--            Selected: {{ JSON.stringify(selected) }}-->
+<!--          </div>-->
+        </div>
       </div>
-    </div>
+
+      <q-dialog v-model="edit" persistent>
+        <q-card style="min-width: 500px">
+
+          <q-card-section>
+            <q-input
+              filled
+              v-model="edited.name"
+              label="name"
+              lazy-rules
+              :rules="[ val => val && val.length > 0 || 'Please type something']"
+            />
+            <q-input
+              filled
+              v-model="edited.x"
+              label="coordinate X"
+              lazy-rules
+              type="number"
+              :rules="[val => !!val || 'Field is required']"
+            />
+            <q-input
+              filled
+              v-model="edited.y"
+              label="coordinate Y"
+              lazy-rules
+              type="number"
+              :rules="[val => !!val || 'Field is required']"
+            />
+
+            <q-input
+              filled
+              v-model="edited.manufacturecost"
+              label="manufacture cost"
+              lazy-rules
+              type="number"
+            />
+
+            <q-input
+              filled
+              v-model="edited.price"
+              label="price"
+              lazy-rules
+              type="number"
+              :rules="[val => !!val || 'Field is required']"
+            />
+
+            <q-input
+              filled
+              v-model="edited.unitofmeasure"
+              label="unit of measure"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="edited.eyecolor"
+              label="eye color"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="edited.location_name"
+              label="location name"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="edited.location_x"
+              label="location x"
+              lazy-rules
+              type="number"
+            />
+
+            <q-input
+              filled
+              v-model="edited.location_y"
+              label="location y"
+              lazy-rules
+              type="number"
+            />
+
+            <q-input
+              filled
+              v-model="edited.nationality"
+              label="nationality"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="edited.owner_name"
+              label="owner name"
+              lazy-rules
+            />
+
+          </q-card-section>
+
+          <q-card-actions align="right" class="text-primary">
+            <q-btn flat label="Cancel" v-close-popup></q-btn>
+            <q-btn flat label="Save" v-close-popup></q-btn>
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="create" persistent>
+        <q-card style="min-width: 500px">
+
+          <q-card-section>
+            <q-input
+              filled
+              v-model="created.name"
+              label="name"
+              lazy-rules
+              :rules="[ val => val && val.length > 0 || 'Please type something']"
+            />
+            <q-input
+              filled
+              v-model="created.x"
+              label="coordinate X"
+              lazy-rules
+              type="number"
+              :rules="[val => !!val || 'Field is required']"
+            />
+            <q-input
+              filled
+              v-model="created.y"
+              label="coordinate Y"
+              lazy-rules
+              type="number"
+              :rules="[val => !!val || 'Field is required']"
+            />
+
+            <q-input
+              filled
+              v-model="created.manufacturecost"
+              label="manufacture cost"
+              lazy-rules
+              type="number"
+            />
+
+            <q-input
+              filled
+              v-model="created.price"
+              label="price"
+              lazy-rules
+              type="number"
+              :rules="[val => !!val || 'Field is required']"
+            />
+
+            <q-input
+              filled
+              v-model="created.unitofmeasure"
+              label="unit of measure"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="created.eyecolor"
+              label="eye color"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="created.location_name"
+              label="location name"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="created.location_x"
+              label="location x"
+              lazy-rules
+              type="number"
+            />
+
+            <q-input
+              filled
+              v-model="created.location_y"
+              label="location y"
+              lazy-rules
+              type="number"
+            />
+
+            <q-input
+              filled
+              v-model="created.nationality"
+              label="nationality"
+              lazy-rules
+            />
+
+            <q-input
+              filled
+              v-model="created.owner_name"
+              label="owner name"
+              lazy-rules
+            />
+
+          </q-card-section>
+
+          <q-card-actions align="right" class="text-primary">
+            <q-btn flat label="Cancel" v-close-popup></q-btn>
+            <q-btn flat label="Create" v-close-popup></q-btn>
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+    </q-page-container>
   </q-layout>
 </template>
 
 <script>
-// import EssentialLink from 'components/EssentialLink.vue'
+import axios from 'axios'
 
-const linksData = [
-]
+const api = axios.create({ baseURL: 'http://localhost:8080/soa1_1-1.0-SNAPSHOT/product' })
 
 export default {
   name: 'MainLayout',
-  // components: { EssentialLink },
+  axios,
+  api,
   data () {
     return {
+      edit: false,
+      edited: { name: 'name', x: 237, y: 9.0, manufacturecost: 4, price: 129, unitofmeasure: 'KILOGRAMS', eyecolor: 'BROWN', location_name: 'asd', location_x: 1, location_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
+      create: false,
+      created: { name: 'name', x: 237, y: 9.0, manufacturecost: 4, price: 129, unitofmeasure: 'KILOGRAMS', eyecolor: 'BROWN', location_name: 'asd', location_x: 1, location_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
       selected: [],
-      leftDrawerOpen: false,
-      essentialLinks: linksData,
+      filter: '',
+      loading: false,
+      pagination: {
+        sortBy: 'desc',
+        descending: false,
+        page: 1,
+        rowsPerPage: 5,
+        rowsNumber: 10
+      },
       columns: [
+        { name: 'id', label: 'id', field: 'id', sortable: false },
         {
           name: 'name',
           required: true,
           label: 'name',
           align: 'left',
           field: row => row.name,
-          format: val => `${val}`,
-          sortable: true
+          sortable: false
         },
-        { name: 'x', label: 'x', field: 'x', sortable: true },
-        { name: 'y', label: 'y', field: 'y', sortable: true },
-        { name: 'creationdate', label: 'creationdate', field: 'creationdate', sortable: true },
-        { name: 'manufacturecost', label: 'manufacturecost', field: 'manufacturecost', sortable: true },
-        { name: 'price', label: 'price', field: 'price', sortable: true },
-        { name: 'unitofmeasure', label: 'unitofmeasure', field: 'unitofmeasure', sortable: true },
-        { name: 'eyecolor', label: 'eyecolor', field: 'eyecolor', sortable: true },
-        { name: 'location_name', label: 'location_name', field: 'location_name', sortable: true },
-        { name: 'location_x', label: 'location_x', field: 'location_x', sortable: true },
-        { name: 'location_y', label: 'location_y', field: 'location_y', sortable: true },
-        { name: 'nationality', label: 'nationality', field: 'nationality', sortable: true },
-        { name: 'owner_name', label: 'owner_name', field: 'owner_name', sortable: true },
-        { name: 'passportid', label: 'passportid', field: 'passportid', sortable: true }
+        { name: 'x', label: 'x', field: 'x', sortable: false },
+        { name: 'y', label: 'y', field: 'y', sortable: false },
+        { name: 'creationdate', label: 'creationdate', field: 'creationdate', sortable: false },
+        { name: 'manufacturecost', label: 'manufacturecost', field: 'manufacturecost', sortable: false },
+        { name: 'price', label: 'price', field: 'price', sortable: false },
+        { name: 'unitofmeasure', label: 'unitofmeasure', field: 'unitofmeasure', sortable: false },
+        { name: 'eyecolor', label: 'eyecolor', field: 'eyecolor', sortable: false },
+        { name: 'location_name', label: 'location_name', field: 'location_name', sortable: false },
+        { name: 'location_x', label: 'location_x', field: 'location_x', sortable: false },
+        { name: 'location_y', label: 'location_y', field: 'location_y', sortable: false },
+        { name: 'nationality', label: 'nationality', field: 'nationality', sortable: false },
+        { name: 'owner_name', label: 'owner_name', field: 'owner_name', sortable: false }
       ],
       data: [
         {
@@ -83,8 +314,25 @@ export default {
           location_x: 1,
           location_y: 2,
           nationality: 'RUSSIA',
-          owner_name: 'asd',
-          passportid: 2
+          owner_name: 'asd'
+        }
+      ],
+      original: [
+        {
+          id: 2,
+          name: 'name',
+          x: 237,
+          y: 9.0,
+          creationdate: '37',
+          manufacturecost: 4,
+          price: 129,
+          unitofmeasure: 'KILOGRAMS',
+          eyecolor: 'BROWN',
+          location_name: 'asd',
+          location_x: 1,
+          location_y: 2,
+          nationality: 'RUSSIA',
+          owner_name: 'asd'
         }
       ]
     }
