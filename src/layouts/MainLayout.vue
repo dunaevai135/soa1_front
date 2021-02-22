@@ -519,7 +519,9 @@ export default {
     sendCreate (created) {
       let createStr = '/?'
       for (var prop in created) {
-        createStr += prop + '=' + created[prop] + '&'
+        if (created[prop] !== '') {
+          createStr += prop + '=' + created[prop] + '&'
+        }
       }
       const self = this
       api.put(createStr).catch((error) => {
