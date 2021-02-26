@@ -66,7 +66,7 @@
 
             <q-input
               filled
-              v-model="edited.manufacturecost"
+              v-model="edited.manufactureCost"
               label="manufacture cost"
               lazy-rules
               type="number"
@@ -83,14 +83,14 @@
 
             <q-input
               filled
-              v-model="edited.unitofmeasure"
+              v-model="edited.unitOfMeasure"
               label="unit of measure"
               lazy-rules
             />
 
             <q-input
               filled
-              v-model="edited.eyecolor"
+              v-model="edited.eyeColor"
               label="eye color"
               lazy-rules
             />
@@ -104,7 +104,7 @@
 
             <q-input
               filled
-              v-model="edited.location_x"
+              v-model="edited.owner_x"
               label="location x"
               lazy-rules
               type="number"
@@ -112,7 +112,7 @@
 
             <q-input
               filled
-              v-model="edited.location_y"
+              v-model="edited.owner_y"
               label="location y"
               lazy-rules
               type="number"
@@ -135,8 +135,8 @@
           </q-card-section>
 
           <q-card-actions align="right" class="text-primary">
-            <q-btn flat label="Cancel" v-close-popup></q-btn>
-            <q-btn flat label="Save" v-close-popup></q-btn>
+            <q-btn flat label="Cancel" @click="initTable()" v-close-popup></q-btn>
+            <q-btn flat label="Save" @click="sendEdit(edited)" v-close-popup></q-btn>
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -171,7 +171,7 @@
 
             <q-input
               filled
-              v-model="created.manufacturecost"
+              v-model="created.manufactureCost"
               label="manufacture cost"
               lazy-rules
               type="number"
@@ -188,14 +188,14 @@
 
             <q-input
               filled
-              v-model="created.unitofmeasure"
+              v-model="created.unitOfMeasure"
               label="unit of measure"
               lazy-rules
             />
 
             <q-input
               filled
-              v-model="created.eyecolor"
+              v-model="created.eyeColor"
               label="eye color"
               lazy-rules
             />
@@ -209,7 +209,7 @@
 
             <q-input
               filled
-              v-model="created.location_x"
+              v-model="created.owner_x"
               label="location x"
               lazy-rules
               type="number"
@@ -217,7 +217,7 @@
 
             <q-input
               filled
-              v-model="created.location_y"
+              v-model="created.owner_y"
               label="location y"
               lazy-rules
               type="number"
@@ -271,7 +271,7 @@
 import axios from 'axios'
 import xml2js from 'xml2js'
 
-const api = axios.create({ baseURL: 'http://localhost:8080/soa1_1-1.0-SNAPSHOT/product' })
+const api = axios.create({ baseURL: 'http://localhost:8642/soa1_1-1.0-SNAPSHOT/product' })
 
 export default {
   name: 'MainLayout',
@@ -284,9 +284,9 @@ export default {
       alert: false,
       error: '',
       url: '',
-      edited: { name: 'name', x: 237, y: 9.0, manufacturecost: 4, price: 129, unitofmeasure: 'KILOGRAMS', eyecolor: 'BROWN', location_name: 'asd', location_x: 1, location_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
+      edited: { name: 'name', x: 237, y: 9.0, manufactureCost: 4, price: 129, unitOfMeasure: 'KILOGRAMS', eyeColor: 'BROWN', location_name: 'asd', owner_x: 1, owner_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
       create: false,
-      created: { name: 'name', x: 237, y: 9.0, manufacturecost: 4, price: 129, unitofmeasure: 'KILOGRAMS', eyecolor: 'BROWN', location_name: 'asd', location_x: 1, location_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
+      created: { name: 'name', x: 237, y: 9.0, manufactureCost: 4, price: 129, unitOfMeasure: 'KILOGRAMS', eyeColor: 'BROWN', location_name: 'asd', owner_x: 1, owner_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
       selected: [],
       filter: '',
       loading: false,
@@ -309,14 +309,14 @@ export default {
         },
         { name: 'x', label: 'x', field: 'x', sortable: false },
         { name: 'y', label: 'y', field: 'y', sortable: false },
-        { name: 'creationdate', label: 'creationdate', field: 'creationdate', sortable: false },
-        { name: 'manufacturecost', label: 'manufacturecost', field: 'manufacturecost', sortable: false },
+        { name: 'creationDate', label: 'creationDate', field: 'creationDate', sortable: false },
+        { name: 'manufactureCost', label: 'manufactureCost', field: 'manufactureCost', sortable: false },
         { name: 'price', label: 'price', field: 'price', sortable: false },
-        { name: 'unitofmeasure', label: 'unitofmeasure', field: 'unitofmeasure', sortable: false },
-        { name: 'eyecolor', label: 'eyecolor', field: 'eyecolor', sortable: false },
+        { name: 'unitOfMeasure', label: 'unitOfMeasure', field: 'unitOfMeasure', sortable: false },
+        { name: 'eyeColor', label: 'eyeColor', field: 'eyeColor', sortable: false },
         { name: 'location_name', label: 'location_name', field: 'location_name', sortable: false },
-        { name: 'location_x', label: 'location_x', field: 'location_x', sortable: false },
-        { name: 'location_y', label: 'location_y', field: 'location_y', sortable: false },
+        { name: 'owner_x', label: 'owner_x', field: 'owner_x', sortable: false },
+        { name: 'owner_y', label: 'owner_y', field: 'owner_y', sortable: false },
         { name: 'nationality', label: 'nationality', field: 'nationality', sortable: false },
         { name: 'owner_name', label: 'owner_name', field: 'owner_name', sortable: false }
       ],
@@ -326,14 +326,14 @@ export default {
           name: 'name',
           x: 237,
           y: 9.0,
-          creationdate: '37',
-          manufacturecost: 4,
+          creationDate: '37',
+          manufactureCost: 4,
           price: 129,
-          unitofmeasure: 'KILOGRAMS',
-          eyecolor: undefined,
+          unitOfMeasure: 'KILOGRAMS',
+          eyeColor: undefined,
           location_name: 'asd',
-          location_x: 1,
-          location_y: 2,
+          owner_x: 1,
+          owner_y: 2,
           nationality: 'RUSSIA',
           owner_name: 'asd'
         }
@@ -344,14 +344,14 @@ export default {
           name: 'name',
           x: 237,
           y: 9.0,
-          creationdate: '37',
-          manufacturecost: 4,
+          creationDate: '37',
+          manufactureCost: 4,
           price: 129,
-          unitofmeasure: 'KILOGRAMS',
-          eyecolor: 'BROWN',
+          unitOfMeasure: 'KILOGRAMS',
+          eyeColor: 'BROWN',
           location_name: 'asd',
-          location_x: 1,
-          location_y: 2,
+          owner_x: 1,
+          owner_y: 2,
           nationality: 'RUSSIA',
           owner_name: 'asd'
         },
@@ -360,14 +360,14 @@ export default {
           name: undefined,
           x: undefined,
           y: 9.0,
-          creationdate: '37',
-          manufacturecost: undefined,
+          creationDate: '37',
+          manufactureCost: undefined,
           price: 129,
-          unitofmeasure: 'KILOGRAMS',
-          eyecolor: undefined,
+          unitOfMeasure: 'KILOGRAMS',
+          eyeColor: undefined,
           location_name: 'asd',
-          location_x: 1,
-          location_y: 2,
+          owner_x: 1,
+          owner_y: 2,
           nationality: 'RUSSIA',
           owner_name: 'asd'
         }
@@ -401,7 +401,7 @@ export default {
         const a = response.data
         xml2js.parseString(a, function (err, result) {
           console.log(err)
-          // console.log(result.root.element)
+          console.log(result.root.element)
           const wtf = result.root.element
           for (var j in result.root.element) {
             const i = wtf[j]
@@ -420,28 +420,28 @@ export default {
               newObj.y = i.coordinate[0].y[0]._
             } catch {}
             try {
-              newObj.creationdate = i.creationdate[0]
+              newObj.creationDate = i.creationdate[0]
             } catch {}
             try {
-              newObj.manufacturecost = i.manufacturecost[0]._
+              newObj.manufactureCost = i.manufacturecost[0]._
             } catch {}
             try {
               newObj.price = i.price[0]._
             } catch {}
             try {
-              newObj.unitofmeasure = i.unitofmeasure[0]
+              newObj.unitOfMeasure = i.unitofmeasure[0]
             } catch {}
             try {
-              newObj.eyecolor = i.person[0].eyecolor[0]
+              newObj.eyeColor = i.person[0].eyecolor[0]
             } catch {}
             try {
               newObj.location_name = i.person[0].location_name[0]
             } catch {}
             try {
-              newObj.location_x = i.person[0].location_x[0]._
+              newObj.owner_x = i.person[0].location_x[0]._
             } catch {}
             try {
-              newObj.location_y = i.person[0].location_y[0]._
+              newObj.owner_y = i.person[0].location_y[0]._
             } catch {}
             try {
               newObj.nationality = i.person[0].nationality[0]
@@ -453,6 +453,7 @@ export default {
           }
           self.data = JSON.parse(JSON.stringify(newData))
           self.loading = false
+          console.log(self.data)
         })
       })
     },
@@ -525,6 +526,22 @@ export default {
       }
       const self = this
       api.put(createStr).catch((error) => {
+        self.customAlert(error)
+        console.log(error.toJSON())
+      }).then(function (response) {
+        self.initTable()
+      })
+    },
+
+    sendEdit (edt) {
+      let edtStr = '/' + edt.id + '?'
+      for (var prop in edt) {
+        if (edt[prop] !== '' && prop !== 'id') {
+          edtStr += prop + '=' + edt[prop] + '&'
+        }
+      }
+      const self = this
+      api.patch(edtStr).catch((error) => {
         self.customAlert(error)
         console.log(error.toJSON())
       }).then(function (response) {
