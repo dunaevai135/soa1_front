@@ -31,8 +31,42 @@
 
           </q-table>
           <div class="q-mt-md">
-            Selected: {{ JSON.stringify(error) }}
+            Status: {{ JSON.stringify(error) }}
           </div>
+          <q-card>
+            <q-card-section>
+              <div class="q-mt-md">
+                Cумма значений поля price для всех объектов: {{ priceSum }}
+              </div>
+              <q-btn color="secondary" label="Рассчитать" @click="sendPriceSum()"></q-btn>
+            </q-card-section>
+            <q-card-section>
+              <div class="q-mt-md">
+                Cреднее значение поля manufactureCost для всех объектов: {{ manufactureCostAvr }}
+              </div>
+              <q-btn color="secondary" label="Рассчитать" @click="sendManufactureCostAvr()"></q-btn>
+            </q-card-section>
+
+              <q-table
+                title="массив объектов, значение поля name которых начинается с заданной подстроки"
+                :data="data_subs"
+                :columns="columns"
+                row-key="id"
+              >
+                <template v-slot:top-right>
+                  <div v-if="$q.screen.gt.xs" class="q-pa-md q-gutter-sm">
+                    <q-btn color="secondary" label="Рассчитать" @click="sendSubs()"></q-btn>
+                  </div>
+                  <q-input borderless dense debounce="300" v-model="subsFilter" placeholder="подстрока">
+                    <template v-slot:append>
+                      <q-icon name="search"></q-icon>
+                    </template>
+                  </q-input>
+                </template>
+
+              </q-table>
+
+          </q-card>
         </div>
       </div>
 
@@ -271,7 +305,8 @@
 import axios from 'axios'
 import xml2js from 'xml2js'
 
-const api = axios.create({ baseURL: 'http://localhost:8642/soa1_1-1.0-SNAPSHOT/product' })
+// const api = axios.create({ baseURL: 'http://localhost:8642/soa1_1-1.0-SNAPSHOT/product' })
+const api = axios.create({ baseURL: '/soa1_1-1.0-SNAPSHOT/product' })
 
 export default {
   name: 'MainLayout',
@@ -321,22 +356,6 @@ export default {
         { name: 'owner_name', label: 'owner_name', field: 'owner_name', sortable: false }
       ],
       data: [
-        {
-          id: 2,
-          name: 'name',
-          x: 237,
-          y: 9.0,
-          creationDate: '37',
-          manufactureCost: 4,
-          price: 129,
-          unitOfMeasure: 'KILOGRAMS',
-          eyeColor: undefined,
-          location_name: 'asd',
-          owner_x: 1,
-          owner_y: 2,
-          nationality: 'RUSSIA',
-          owner_name: 'asd'
-        }
       ],
       original: [
         {
@@ -393,72 +412,87 @@ export default {
       this.loading = true
       const self = this
       // eslint-disable-next-line no-unused-vars
-      const newData = []
       api.get('/?' + filter).catch((error) => {
         self.customErr(error)
         console.log(error.toJSON())
-      }).then((response) => {
-        const a = response.data
-        xml2js.parseString(a, function (err, result) {
-          console.log(err)
-          console.log(result.root.element)
-          const wtf = result.root.element
-          for (var j in result.root.element) {
-            const i = wtf[j]
-            // console.log(i.id[0]._)
-            var newObj = {}
-            try {
-              newObj.id = i.id[0]._
-            } catch {}
-            try {
-              newObj.name = i.name[0]
-            } catch {}
-            try {
-              newObj.x = i.coordinate[0].x[0]._
-            } catch {}
-            try {
-              newObj.y = i.coordinate[0].y[0]._
-            } catch {}
-            try {
-              newObj.creationDate = i.creationdate[0]
-            } catch {}
-            try {
-              newObj.manufactureCost = i.manufacturecost[0]._
-            } catch {}
-            try {
-              newObj.price = i.price[0]._
-            } catch {}
-            try {
-              newObj.unitOfMeasure = i.unitofmeasure[0]
-            } catch {}
-            try {
-              newObj.eyeColor = i.person[0].eyecolor[0]
-            } catch {}
-            try {
-              newObj.location_name = i.person[0].location_name[0]
-            } catch {}
-            try {
-              newObj.owner_x = i.person[0].location_x[0]._
-            } catch {}
-            try {
-              newObj.owner_y = i.person[0].location_y[0]._
-            } catch {}
-            try {
-              newObj.nationality = i.person[0].nationality[0]
-            } catch {}
-            try {
-              newObj.owner_name = i.person[0].owner_name[0]
-            } catch {}
-            newData.push(newObj)
+      }).then((response) => self.parseXml(response, self.data, self.loading))
+    },
+
+    parseXml (response, todata, toLoad) {
+      const newData = []
+      const a = response.data
+      xml2js.parseString(a, function (err, result) {
+        console.log(err)
+        // console.log(result.root.element)
+        const wtf = result.root.element
+        for (var j in result.root.element) {
+          const i = wtf[j]
+          // console.log(i.id[0])
+          var newObj = {}
+          try {
+            newObj.id = i.id[0]._
+          } catch {
           }
-          self.data = JSON.parse(JSON.stringify(newData))
-          self.loading = false
-          console.log(self.data)
-        })
+          try {
+            newObj.name = i.name[0]
+          } catch {
+          }
+          try {
+            newObj.x = i.coordinate[0].x[0]
+          } catch {
+          }
+          try {
+            newObj.y = i.coordinate[0].y[0]
+          } catch {
+          }
+          try {
+            newObj.creationDate = i.creationdate[0]
+          } catch {
+          }
+          try {
+            newObj.manufactureCost = i.manufacturecost[0]
+          } catch {
+          }
+          try {
+            newObj.price = i.price[0]
+          } catch {
+          }
+          try {
+            newObj.unitOfMeasure = i.unitofmeasure[0]
+          } catch {
+          }
+          try {
+            newObj.eyeColor = i.person[0].eyecolor[0]
+          } catch {
+          }
+          try {
+            newObj.location_name = i.person[0].location_name[0]
+          } catch {
+          }
+          try {
+            newObj.owner_x = i.person[0].location_x[0]
+          } catch {
+          }
+          try {
+            newObj.owner_y = i.person[0].location_y[0]
+          } catch {
+          }
+          try {
+            newObj.nationality = i.person[0].nationality[0]
+          } catch {
+          }
+          try {
+            newObj.owner_name = i.person[0].owner_name[0]
+          } catch {
+          }
+          newData.push(newObj)
+        }
+        todata = JSON.parse(JSON.stringify(newData))
+        toLoad = false
+        console.log(todata)
       })
     },
 
-    // emulate ajax call
     // SELECT * FROM ... WHERE...LIMIT...
     fetchFromServer (startRow, count, filter, sortBy, descending) {
       const data = filter
