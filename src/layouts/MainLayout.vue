@@ -1,18 +1,18 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <h1> Hello </h1>
+    <h1> SOA1 </h1>
     <q-page-container>
       <div id="q-app">
         <div class="q-pa-md">
+
           <q-table
-            title="Treats"
+            title="Products"
             selection="single"
             :selected.sync="selected"
             :data="data"
             :columns="columns"
             row-key="id"
             :loading="loading"
-            :filter="filter"
             @request="onRequest"
             binary-state-sort
           >
@@ -22,9 +22,10 @@
                 <q-btn color="secondary" label="Edit" @click="edited = selected[0]; edit = true" :disabled="(selected.length == 0)"/>
                 <q-btn color="secondary" label="Delete" @click="sendDelete(selected[0])" :disabled="(selected.length == 0)"/>
               </div>
+              <q-input dense debounce="300" v-model="sortFields" placeholder="sort Fields"></q-input>
               <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
                 <template v-slot:append>
-                  <q-icon name="search"></q-icon>
+                  <q-btn icon="search" @click="onRequest({ filter: filter })"/>
                 </template>
               </q-input>
             </template>
@@ -49,7 +50,7 @@
 
               <q-table
                 title="массив объектов, значение поля name которых начинается с заданной подстроки"
-                :data="data_subs"
+                :data="dataSubs"
                 :columns="columns"
                 row-key="id"
               >
@@ -288,6 +289,13 @@
 
           <q-card-section class="q-pt-none">
             {{ error }}
+          </q-card-section>
+
+          <q-card-section>
+<!--            <q-img-->
+<!--              :src="url"-->
+<!--              spinner-color="white"-->
+<!--            ></q-img>-->
             <img :src="url" alt="">
           </q-card-section>
 
@@ -307,6 +315,7 @@ import xml2js from 'xml2js'
 
 // const api = axios.create({ baseURL: 'http://localhost:8642/soa1_1-1.0-SNAPSHOT/product' })
 const api = axios.create({ baseURL: '/soa1_1-1.0-SNAPSHOT/product' })
+// const api = axios.create({ baseURL: 'http://localhost:8080/soa1_1-1.0-SNAPSHOT/product' })
 
 export default {
   name: 'MainLayout',
@@ -317,6 +326,8 @@ export default {
     return {
       edit: false,
       alert: false,
+      priceSum: null,
+      manufactureCostAvr: null,
       error: '',
       url: '',
       edited: { name: 'name', x: 237, y: 9.0, manufactureCost: 4, price: 129, unitOfMeasure: 'KILOGRAMS', eyeColor: 'BROWN', location_name: 'asd', owner_x: 1, owner_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
@@ -324,6 +335,8 @@ export default {
       created: { name: 'name', x: 237, y: 9.0, manufactureCost: 4, price: 129, unitOfMeasure: 'KILOGRAMS', eyeColor: 'BROWN', location_name: 'asd', owner_x: 1, owner_y: 2, nationality: 'RUSSIA', owner_name: 'asd' },
       selected: [],
       filter: '',
+      subsFilter: '',
+      sortFields: '',
       loading: false,
       pagination: {
         sortBy: 'desc',
@@ -357,6 +370,7 @@ export default {
       ],
       data: [
       ],
+      dataSubs: [],
       original: [
         {
           id: 2,
@@ -408,88 +422,175 @@ export default {
     onRequest (props) {
       // const { page, rowsPerPage, sortBy, descending } = props.pagination
       const filter = props.filter
-
+      console.log(filter)
       this.loading = true
       const self = this
       // eslint-disable-next-line no-unused-vars
-      api.get('/?' + filter).catch((error) => {
+      var myObj = { todata: self.data, toLoad: self.loading }
+      api.get('/?' + filter + (this.sortFields === '' ? '' : '&sortFields=' + this.sortFields)).catch((error) => {
+        self.customAlert(error)
         self.customErr(error)
         console.log(error.toJSON())
-      }).then((response) => self.parseXml(response, self.data, self.loading))
+      }).then((response) => {
+        const newData = []
+        const a = response.data
+        xml2js.parseString(a, function (err, result) {
+          console.log(err)
+          console.log(result.root.element)
+          const wtf = result.root.element
+          for (var j in result.root.element) {
+            const i = wtf[j]
+            // console.log(i.id[0])
+            var newObj = {}
+            try {
+              newObj.id = i.id[0]._
+            } catch {
+            }
+            try {
+              newObj.name = i.name[0]
+            } catch {
+            }
+            try {
+              newObj.x = i.coordinate[0].x[0]
+            } catch {
+            }
+            try {
+              newObj.y = i.coordinate[0].y[0]
+            } catch {
+            }
+            try {
+              newObj.creationDate = i.creationdate[0]
+            } catch {
+            }
+            try {
+              newObj.manufactureCost = i.manufacturecost[0]
+            } catch {
+            }
+            try {
+              newObj.price = i.price[0]
+            } catch {
+            }
+            try {
+              newObj.unitOfMeasure = i.unitofmeasure[0]
+            } catch {
+            }
+            try {
+              newObj.eyeColor = i.person[0].eyecolor[0]
+            } catch {
+            }
+            try {
+              newObj.location_name = i.person[0].location_name[0]
+            } catch {
+            }
+            try {
+              newObj.owner_x = i.person[0].location_x[0]
+            } catch {
+            }
+            try {
+              newObj.owner_y = i.person[0].location_y[0]
+            } catch {
+            }
+            try {
+              newObj.nationality = i.person[0].nationality[0]
+            } catch {
+            }
+            try {
+              newObj.owner_name = i.person[0].owner_name[0]
+            } catch {
+            }
+            for (const propsKey in newObj) {
+              // eslint-disable-next-line no-prototype-builtins
+              if (newObj[propsKey].hasOwnProperty('$')) {
+                newObj[propsKey] = ''
+              }
+            }
+            newData.push(newObj)
+          }
+          self.data = JSON.parse(JSON.stringify(newData))
+          self.loading = false
+          console.log(self.data)
+        })
+      })
     },
 
-    parseXml (response, todata, toLoad) {
-      const newData = []
-      const a = response.data
-      xml2js.parseString(a, function (err, result) {
-        console.log(err)
-        // console.log(result.root.element)
-        const wtf = result.root.element
-        for (var j in result.root.element) {
-          const i = wtf[j]
-          // console.log(i.id[0])
-          var newObj = {}
-          try {
-            newObj.id = i.id[0]._
-          } catch {
+    sendSubs () {
+      const filter = this.subsFilter
+      const self = this
+      api.post('/name_starts/' + filter).catch((error) => {
+        self.customErr(error)
+        console.log(error.toJSON())
+      }).then((response) => {
+        const newData = []
+        const a = response.data
+        xml2js.parseString(a, function (err, result) {
+          console.log(err)
+          // console.log(result.root.element)
+          const wtf = result.root.element
+          for (var j in result.root.element) {
+            const i = wtf[j]
+            // console.log(i.id[0])
+            var newObj = {}
+            try {
+              newObj.id = i.id[0]._
+            } catch {
+            }
+            try {
+              newObj.name = i.name[0]
+            } catch {
+            }
+            try {
+              newObj.x = i.coordinate[0].x[0]
+            } catch {
+            }
+            try {
+              newObj.y = i.coordinate[0].y[0]
+            } catch {
+            }
+            try {
+              newObj.creationDate = i.creationdate[0]
+            } catch {
+            }
+            try {
+              newObj.manufactureCost = i.manufacturecost[0]
+            } catch {
+            }
+            try {
+              newObj.price = i.price[0]
+            } catch {
+            }
+            try {
+              newObj.unitOfMeasure = i.unitofmeasure[0]
+            } catch {
+            }
+            try {
+              newObj.eyeColor = i.person[0].eyecolor[0]
+            } catch {
+            }
+            try {
+              newObj.location_name = i.person[0].location_name[0]
+            } catch {
+            }
+            try {
+              newObj.owner_x = i.person[0].location_x[0]
+            } catch {
+            }
+            try {
+              newObj.owner_y = i.person[0].location_y[0]
+            } catch {
+            }
+            try {
+              newObj.nationality = i.person[0].nationality[0]
+            } catch {
+            }
+            try {
+              newObj.owner_name = i.person[0].owner_name[0]
+            } catch {
+            }
+            newData.push(newObj)
           }
-          try {
-            newObj.name = i.name[0]
-          } catch {
-          }
-          try {
-            newObj.x = i.coordinate[0].x[0]
-          } catch {
-          }
-          try {
-            newObj.y = i.coordinate[0].y[0]
-          } catch {
-          }
-          try {
-            newObj.creationDate = i.creationdate[0]
-          } catch {
-          }
-          try {
-            newObj.manufactureCost = i.manufacturecost[0]
-          } catch {
-          }
-          try {
-            newObj.price = i.price[0]
-          } catch {
-          }
-          try {
-            newObj.unitOfMeasure = i.unitofmeasure[0]
-          } catch {
-          }
-          try {
-            newObj.eyeColor = i.person[0].eyecolor[0]
-          } catch {
-          }
-          try {
-            newObj.location_name = i.person[0].location_name[0]
-          } catch {
-          }
-          try {
-            newObj.owner_x = i.person[0].location_x[0]
-          } catch {
-          }
-          try {
-            newObj.owner_y = i.person[0].location_y[0]
-          } catch {
-          }
-          try {
-            newObj.nationality = i.person[0].nationality[0]
-          } catch {
-          }
-          try {
-            newObj.owner_name = i.person[0].owner_name[0]
-          } catch {
-          }
-          newData.push(newObj)
-        }
-        todata = JSON.parse(JSON.stringify(newData))
-        toLoad = false
-        console.log(todata)
+          self.dataSubs = JSON.parse(JSON.stringify(newData))
+          console.log(self.dataSubs)
+        })
       })
     },
 
@@ -552,14 +653,16 @@ export default {
     },
 
     sendCreate (created) {
-      let createStr = '/?'
+      const createStr = '/'
+      let bodyXml = '<?xml version="1.0" encoding="UTF-8"?><root>'
       for (var prop in created) {
         if (created[prop] !== '') {
-          createStr += prop + '=' + created[prop] + '&'
+          bodyXml += '<' + prop + '>' + created[prop] + '</' + prop + '>'
         }
       }
+      bodyXml += '</root>'
       const self = this
-      api.put(createStr).catch((error) => {
+      api.post(createStr, bodyXml).catch((error) => {
         self.customAlert(error)
         console.log(error.toJSON())
       }).then(function (response) {
@@ -568,18 +671,60 @@ export default {
     },
 
     sendEdit (edt) {
-      let edtStr = '/' + edt.id + '?'
+      const edtStr = '/' + edt.id
+
+      let bodyXml = '<?xml version="1.0" encoding="UTF-8"?><root>'
       for (var prop in edt) {
-        if (edt[prop] !== '' && prop !== 'id') {
-          edtStr += prop + '=' + edt[prop] + '&'
+        if (prop !== 'id') {
+          bodyXml += '<' + prop + '>' + edt[prop] + '</' + prop + '>'
         }
       }
+      bodyXml += '</root>'
+
+      // for (var prop in edt) {
+      //   if (edt[prop] !== '' && prop !== 'id') {
+      //     edtStr += prop + '=' + edt[prop] + '&'
+      //   }
+      // }
+
       const self = this
-      api.patch(edtStr).catch((error) => {
+      api.patch(edtStr, bodyXml).catch((error) => {
         self.customAlert(error)
         console.log(error.toJSON())
       }).then(function (response) {
         self.initTable()
+      })
+    },
+
+    // /soa1_1-1.0-SNAPSHOT/product/sum_price
+    sendPriceSum () {
+      const self = this
+      api.post('/sum_price').catch((error) => {
+        self.customErr(error)
+        console.log(error.toJSON())
+      }).then((response) => {
+        const a = response.data
+        xml2js.parseString(a, function (err, result) {
+          console.log(err)
+          // console.log(result.root.element)
+          self.priceSum = result.root.element[0]._
+        })
+      })
+    },
+
+    // /soa1_1-1.0-SNAPSHOT/product/avg_manufacture_cost
+    sendManufactureCostAvr () {
+      const self = this
+      api.post('/avg_manufacture_cost').catch((error) => {
+        self.customErr(error)
+        console.log(error.toJSON())
+      }).then((response) => {
+        const a = response.data
+        xml2js.parseString(a, function (err, result) {
+          console.log(err)
+          // console.log(result.root.element)
+          self.manufactureCostAvr = result.root.element[0]._
+        })
       })
     }
   }
